@@ -1,0 +1,21 @@
+Folder,Filename,Frequency,Variable,ADF Statistic,ADF p-value,KPSS Statistic,KPSS p-value
+developed,UKDATA.csv,Q,GDP,-4.6,0.0,0.07,0.1
+developed,UKDATA.csv,Q,CPI,-1.76,0.4,0.36,0.09
+developed,UKDATA.csv,Q,UNRATE,-1.56,0.51,0.46,0.05
+developed,UKDATA.csv,Q,IR,-1.99,0.29,0.81,0.01
+developed,UKDATA.csv,Q,BOP,-2.02,0.28,0.83,0.01
+developed,USDATA.csv,Q,GDP,-2.96,0.04,0.24,0.1
+developed,USDATA.csv,Q,CPI,-2.4,0.14,0.22,0.1
+developed,USDATA.csv,Q,UNRATE,-2.86,0.05,0.28,0.1
+developed,USDATA.csv,Q,IR,-3.85,0.0,0.32,0.1
+developed,USDATA.csv,Q,BOP,0.13,0.97,0.37,0.09
+developing,SADATA.csv,Y,GDP,-3.87,0.0,0.58,0.02
+developing,SADATA.csv,Y,CPI,-4.46,0.0,0.1,0.1
+developing,SADATA.csv,Y,UNRATE,0.73,0.99,0.5,0.04
+developing,SADATA.csv,Y,IR,-2.75,0.07,0.47,0.05
+developing,SADATA.csv,Y,BOP,-2.95,0.04,0.17,0.1
+developing,VNMDATA.csv,Y,GDP,-3.11,0.03,0.41,0.07
+developing,VNMDATA.csv,Y,CPI,-1.53,0.52,0.22,0.1
+developing,VNMDATA.csv,Y,UNRATE,-1.98,0.29,0.58,0.02
+developing,VNMDATA.csv,Y,IR,-2.29,0.18,0.17,0.1
+developing,VNMDATA.csv,Y,BOP,-2.86,0.05,0.55,0.03
