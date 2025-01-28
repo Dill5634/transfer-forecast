@@ -32,7 +32,7 @@ def train_cnn_lstm():
     batch_size = 32
     model_save_name = "cnn_lstm_model.h5"
 
-    # 1) Collect CSV files
+   # 1) Collect CSV files
     csv_files = sorted([f for f in os.listdir(folder_path) if f.lower().endswith('.csv')])
     if not csv_files:
         print(f"No CSV found in '{folder_path}'.")
@@ -52,7 +52,7 @@ def train_cnn_lstm():
     N = len(data_arr)
     train_end = int(N * 0.7)
     val_end = int(N * 0.85)
-    test_end = N 
+    test_end = N  # Explicitly define test_end
 
     scaler = MinMaxScaler(feature_range=(0, 1))
     scaler.fit(data_arr[:train_end])
@@ -71,7 +71,7 @@ def train_cnn_lstm():
     val_size = val_end - seq_length
     X_train, y_train = X[:train_size], y[:train_size]
     X_val, y_val = X[train_size:val_size], y[train_size:val_size]
-    X_test, y_test = X[val_size:], y[val_size:]
+    X_test, y_test = X[val_size:test_end - seq_length], y[val_size:test_end - seq_length]
 
     print("X_train:", X_train.shape, "y_train:", y_train.shape)
     print("X_val:  ", X_val.shape, "y_val:", y_val.shape)
@@ -79,7 +79,7 @@ def train_cnn_lstm():
 
     # 5) Build and train the model
     n_features = len(variables)
-    model = cnn_lstm(seq_length, n_features, filters1, filters2, kernel_size, pool_size, neurons, dropout)
+    model = cnn_lstm(seq_length, n_features, filters1, filters2, kernel_size, pool_size, neurons, dropout, dense_units=dense_units)
     model.fit(
         X_train, y_train,
         epochs=epochs,
@@ -89,8 +89,8 @@ def train_cnn_lstm():
     )
 
     # 6) Evaluate on test set
-    test_loss = model.evaluate(X_test, y_test, verbose=0)
-    print(f"Test Loss = {test_loss:.6f}")
+    test_loss, test_mae = model.evaluate(X_test, y_test, verbose=0)
+    print(f"Test Loss = {test_loss:.6f}, Test MAE = {test_mae:.6f}")
 
     # 7) Predict on test set
     y_pred_test = model.predict(X_test)
@@ -128,7 +128,6 @@ def train_cnn_lstm():
         test_end=test_end,
         variable_names=variables
     )
-
 
     # Additionally, plot the test portion in multi-subplot
     plot_test_vs_prediction(y_test_inv, y_pred_test_inv, variables)
