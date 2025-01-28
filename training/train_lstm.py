@@ -10,12 +10,12 @@ from helpers.helper_functions import calculate_stats
 
 
 def train_lstm():
-    os.environ["MODEL_NAME"] = "TRAINING_LSTM"
+    os.environ["MODEL_NAME"] = "LSTM"
     folder_path = "developed"
     variables = ['GDP', 'CPI', 'UNRATE', 'IR', 'BOP']
     seq_length = 1
     neurons = [128, 128]
-    dropout = 0.2
+    dropout = 0.4
     epochs = 300
     batch_size = 32
     model_save_name = "LSTM_model.h5"

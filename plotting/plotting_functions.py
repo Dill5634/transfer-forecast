@@ -13,13 +13,17 @@ def get_model_prefix():
     """
     Determines the model prefix dynamically based on the calling script and model name.
     If called from a training script (train_*.py), it stores in Training_{model_name}.
+    If called from general plotting, stores in general_plots.
     """
     script_name = os.path.basename(inspect.stack()[1].filename).replace(".py", "")
-    model_name = script_name.replace("train_", "")  # Extract model name from script
     if script_name.startswith("train_"):
+        model_name = script_name.replace("train_", "")
         return os.path.join("plotting", "model_plots", model_name, f"Training_{model_name}")
-    else:
+    elif "train" in script_name:
+        model_name = script_name.replace("train_", "")
         return os.path.join("plotting", "model_plots", model_name)
+    else:
+        return os.path.join("plotting", "general_plots")
 
 def plotting():
     """
@@ -63,7 +67,6 @@ def plotting():
                 numeric_df[col].plot(ax=ax, title=f"{col} - {filename}")
                 ax.set_xlabel("Time")
                 ax.set_ylabel("Value")
-                ax.set_aspect("auto")
                 plt.tight_layout()
                 plt.savefig(plot_path)
                 plt.close()
@@ -92,45 +95,11 @@ def plot_train_val_test_predictions(
     for i, var in enumerate(variable_names):
         plot_path = os.path.join(base_dir, f"{var}_train_val_test.png")
         plt.figure(figsize=(12, 6))
-        # Full data
-        plt.plot(
-            full_data[:, i],
-            label=f'Full Data ({var})',
-            color='gray',
-            alpha=0.4
-        )
-        # Train portion
-        plt.plot(
-            range(train_start, train_end),
-            full_data[train_start:train_end, i],
-            label='Training',
-            color='blue'
-        )
-        # Validation
-        plt.plot(
-            range(val_start, val_end),
-            full_data[val_start:val_end, i],
-            label='Validation',
-            color='green'
-        )
-        # Test
-        plt.plot(
-            range(test_start, test_end),
-            full_data[test_start:test_end, i],
-            label='Test',
-            color='orange'
-        )
-        # Predicted test
-        pred_start = test_start
-        pred_end = test_start + len(predictions_inverse)
-        plt.plot(
-            range(pred_start, pred_end),
-            predictions_inverse[:, i],
-            label='Predicted (Test)',
-            color='red',
-            linestyle='dashed'
-        )
-
+        plt.plot(full_data[:, i], label=f'Full Data ({var})', color='gray', alpha=0.4)
+        plt.plot(range(train_start, train_end), full_data[train_start:train_end, i], label='Training', color='blue')
+        plt.plot(range(val_start, val_end), full_data[val_start:val_end, i], label='Validation', color='green')
+        plt.plot(range(test_start, test_end), full_data[test_start:test_end, i], label='Test', color='orange')
+        plt.plot(range(test_start, test_start + len(predictions_inverse)), predictions_inverse[:, i], label='Predicted (Test)', color='red', linestyle='dashed')
         plt.title(f"{var} - Train/Val/Test & Predictions")
         plt.xlabel("Time Steps")
         plt.ylabel(var)
@@ -138,7 +107,6 @@ def plot_train_val_test_predictions(
         plt.tight_layout()
         plt.savefig(plot_path)
         plt.close()
-
         print(f"Saved plot: {plot_path}")
 
 def plot_test_vs_prediction(y_true_inv, y_pred_inv, variable_names):
@@ -161,5 +129,4 @@ def plot_test_vs_prediction(y_true_inv, y_pred_inv, variable_names):
     plt.tight_layout()
     plt.savefig(plot_path)
     plt.close()
-
     print(f"Saved plot: {plot_path}")

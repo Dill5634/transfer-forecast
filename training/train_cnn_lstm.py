@@ -17,17 +17,17 @@ def train_cnn_lstm():
     """
     Trains a CNN-LSTM model for macroeconomic forecasting.
     """
-    os.environ["MODEL_NAME"] = "TRAINING_CNN-LSTM"
+    os.environ["MODEL_NAME"] = "CNN-LSTM"
     folder_path = "developed"
     variables = ['GDP', 'CPI', 'UNRATE', 'IR', 'BOP']
-    seq_length = 1  # Updated to ensure kernel size compatibility
+    seq_length = 1
 
-    filters1 = 64
-    filters2 = 64
-    kernel_size = 3
-    pool_size = 2
-    neurons = [32, 96]
-    dropout = 0.1
+    filters1 = 48
+    filters2 = 32
+    kernel_size = 7
+    pool_size = 3
+    neurons = [224, 64]
+    dropout = 0.35
     epochs = 300
     batch_size = 32
     model_save_name = "cnn_lstm_model.h5"
@@ -52,7 +52,7 @@ def train_cnn_lstm():
     N = len(data_arr)
     train_end = int(N * 0.7)
     val_end = int(N * 0.85)
-    test_end = N  # Define test_end explicitly
+    test_end = N 
 
     scaler = MinMaxScaler(feature_range=(0, 1))
     scaler.fit(data_arr[:train_end])
@@ -128,6 +128,7 @@ def train_cnn_lstm():
         test_end=test_end,
         variable_names=variables
     )
+
 
     # Additionally, plot the test portion in multi-subplot
     plot_test_vs_prediction(y_test_inv, y_pred_test_inv, variables)

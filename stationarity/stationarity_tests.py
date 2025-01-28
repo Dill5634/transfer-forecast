@@ -49,6 +49,9 @@ def run_stationarity_tests():
     """
     folders = ['developed','developing']
     all_results = []
+    
+    output_dir = os.path.join("stationarity")
+    os.makedirs(output_dir, exist_ok=True)
 
     for folder in folders:
         freq = 'Q' if folder.lower()=='developed' else 'Y'
@@ -85,5 +88,6 @@ def run_stationarity_tests():
                     })
 
     out_df = pd.DataFrame(all_results)
-    out_df.to_csv('stationarity_test_results.csv', index=False)
-    print("All results saved to stationarity_test_results.csv")
+    output_path = os.path.join(output_dir, 'stationarity_test_results.csv')
+    out_df.to_csv(output_path, index=False)
+    print(f"All results saved to {output_path}")
