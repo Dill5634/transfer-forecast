@@ -17,7 +17,7 @@ def train_cnn_lstm():
     """
     Trains a CNN-LSTM model for macroeconomic forecasting.
     """
-    os.environ["MODEL_NAME"] = "CNN-LSTM"
+    os.environ["MODEL_NAME"] = "TRAINING_CNN-LSTM"
     folder_path = "developed"
     variables = ['GDP', 'CPI', 'UNRATE', 'IR', 'BOP']
     seq_length = 1  # Updated to ensure kernel size compatibility

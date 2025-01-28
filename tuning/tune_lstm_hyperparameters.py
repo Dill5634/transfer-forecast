@@ -68,7 +68,7 @@ def tune_hyperparameters():
     variables = ['GDP', 'CPI', 'UNRATE', 'IR', 'BOP']
     seq_length = 1
 
-    epochs = 200       
+    epochs = 300       
     batch_size = 32   
 
     # 1) Gather CSV files

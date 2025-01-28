@@ -12,44 +12,44 @@ def ensure_dir(directory):
 def get_model_prefix():
     """
     Determines the model prefix dynamically based on the calling script and model name.
+    If called from a training script (train_*.py), it stores in Training_{model_name}.
     """
-    model_name = os.getenv("MODEL_NAME", "default_model")  # Dynamically get model name from environment or default
-    return os.path.join("plotting", "model_plots", model_name)
+    script_name = os.path.basename(inspect.stack()[1].filename).replace(".py", "")
+    model_name = script_name.replace("train_", "")  # Extract model name from script
+    if script_name.startswith("train_"):
+        return os.path.join("plotting", "model_plots", model_name, f"Training_{model_name}")
+    else:
+        return os.path.join("plotting", "model_plots", model_name)
 
 def plotting():
     """
     Parses and plots numeric columns in CSV files, saving plots dynamically
-    under the appropriate model directory.
+    under the appropriate general directory (not model-specific).
     """
     import pandas as pd
     from stationarity.stationarity_tests import parse_time_column
 
-
     folders = ['developed', 'developing']
+    base_dir = os.path.join("plotting", "general_plots")
+    ensure_dir(base_dir)
 
     for folder in folders:
-        # Decide frequency based on folder name
         freq = 'Q' if folder == 'developed' else 'Y'
-
+        folder_dir = os.path.join(base_dir, folder)
+        ensure_dir(folder_dir)
         print(f"\n--- Folder: {folder} (freq={freq}) ---")
 
-        # List CSV files in this folder
         csv_files = sorted([f for f in os.listdir(folder) if f.lower().endswith('.csv')])
         if not csv_files:
             print(f"No CSV files found in '{folder}'. Skipping.")
             continue
 
-        # Process each CSV
         for filename in csv_files:
             file_path = os.path.join(folder, filename)
             print(f"Plotting each variable from {file_path} ...")
 
-            # Read & parse the time column
             df = pd.read_csv(file_path)
-
-            # Ensure you have a 'TIME' column
-            time_col = 'TIME'
-            if time_col not in df.columns:
+            if 'TIME' not in df.columns:
                 print(f"Skipping {filename} - no 'TIME' column found.")
                 continue
 

@@ -10,7 +10,7 @@ from helpers.helper_functions import calculate_stats
 
 
 def train_lstm():
-    os.environ["MODEL_NAME"] = "LSTM"
+    os.environ["MODEL_NAME"] = "TRAINING_LSTM"
     folder_path = "developed"
     variables = ['GDP', 'CPI', 'UNRATE', 'IR', 'BOP']
     seq_length = 1
