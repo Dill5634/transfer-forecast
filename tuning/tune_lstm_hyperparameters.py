@@ -10,7 +10,6 @@ import keras_tuner as kt
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics import mean_squared_error, mean_absolute_error, mean_absolute_percentage_error
 
-
 def build_lstm_model(hp):
     """
     Keras Tuner build function for a multi-output LSTM.
@@ -52,8 +51,6 @@ def build_lstm_model(hp):
     
     return model
 
-
-
 def tune_hyperparameters():
     """
     1) Reads CSVs in 'developed' folder, combining the variables GDP,CPI,UNRATE,IR,BOP
@@ -62,7 +59,7 @@ def tune_hyperparameters():
     4) Runs Keras Tuner (BayesianOptimization) to find best hyperparams
        (units_1, units_2, dropout_rate)
     5) Retrains best model on train/val again
-    6) Saves best model as 'best_lstm_model.keras'
+    6) Saves best model dynamically based on tuner directory and project name
     """
     folder_path = "developed"
     variables = ['GDP', 'CPI', 'UNRATE', 'IR', 'BOP']
@@ -70,6 +67,10 @@ def tune_hyperparameters():
 
     epochs = 300       
     batch_size = 32   
+
+    # Define directory and project name dynamically
+    directory_name = 'tuner_results'
+    project_name = 'lstm_tuning'
 
     # 1) Gather CSV files
     csv_files = sorted([f for f in os.listdir(folder_path) if f.lower().endswith('.csv')])
@@ -110,7 +111,6 @@ def tune_hyperparameters():
     X_train, y_train = X[:train_size], y[:train_size]
     X_val,   y_val   = X[train_size:val_size], y[train_size:val_size]
     
-
     print("X_train:", X_train.shape, "y_train:", y_train.shape)
     print("X_val:  ", X_val.shape,   "y_val:",   y_val.shape)
 
@@ -120,8 +120,8 @@ def tune_hyperparameters():
         objective='val_loss',
         max_trials=100,        
         executions_per_trial=1,  
-        directory='tuner_results',
-        project_name='lstm_tuning'
+        directory=directory_name,
+        project_name=project_name
     )
 
     # 6) Perform hyperparameter search
@@ -148,10 +148,11 @@ def tune_hyperparameters():
         verbose=1
     )
 
-  
     # 9) Save best model
-    best_model.save("best_lstm_model.h5")
-    print("Saved best model as 'best_lstm_model.h5'")
+    model_save_path = os.path.join(directory_name, project_name, "best_lstm_model.h5")
+    os.makedirs(os.path.dirname(model_save_path), exist_ok=True)
+    best_model.save(model_save_path)
+    print(f"Saved best model as '{model_save_path}'")
 
 if __name__ == "__main__":
     tune_hyperparameters()
