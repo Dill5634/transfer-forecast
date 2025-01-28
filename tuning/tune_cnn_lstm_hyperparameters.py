@@ -95,14 +95,18 @@ def tune_hyperparameters():
     print("X_train:", X_train.shape, "y_train:", y_train.shape)
     print("X_val:", X_val.shape, "y_val:", y_val.shape)
 
+    # Define directory and project name dynamically
+    directory_name = 'tuner_results'
+    project_name = 'cnn_lstm_tuning'
+
     # Step 2: Initialize the Keras Tuner
     tuner = kt.BayesianOptimization(
         build_cnn_lstm_model,
         objective='val_loss',
-        max_trials=100,  # Number of hyperparameter combinations to try
+        max_trials=300,  # Number of hyperparameter combinations to try
         executions_per_trial=1,
-        directory='tuner_results',
-        project_name='cnn_lstm_tuning'
+        directory=directory_name,
+        project_name=project_name
     )
 
     # Step 3: Perform hyperparameter tuning
@@ -131,8 +135,10 @@ def tune_hyperparameters():
     )
 
     # Step 6: Save the best model
-    best_model.save("best_cnn_lstm_model.h5")
-    print("Best model saved as 'best_cnn_lstm_model.h5'")
+    model_save_path = os.path.join(directory_name, project_name, "best_cnn_lstm_model.h5")
+    os.makedirs(os.path.dirname(model_save_path), exist_ok=True)
+    best_model.save(model_save_path)
+    print(f"Best model saved as '{model_save_path}'")
 
 if __name__ == "__main__":
     tune_hyperparameters()
