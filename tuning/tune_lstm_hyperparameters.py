@@ -2,23 +2,15 @@ import os
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-
-# Keras / TensorFlow
 import tensorflow as tf
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Input, Reshape, LSTM, Dropout, Dense
 from tensorflow.keras.optimizers import Adam
-
-# Keras Tuner
 import keras_tuner as kt
-
-# Sklearn
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics import mean_squared_error, mean_absolute_error, mean_absolute_percentage_error
 
-# -------------------------------------------------------------------
-# 2) Keras Tuner Model-Building Function WITHOUT TUNING LEARNING RATE
-# -------------------------------------------------------------------
+
 def build_lstm_model(hp):
     """
     Keras Tuner build function for a multi-output LSTM.
@@ -31,7 +23,7 @@ def build_lstm_model(hp):
     - 'dropout_rate': Dropout rate for regularization.
     """
     seq_length = 1  
-    n_features = 5  # Fixed number of output variables
+    n_features = 5
 
     # Tuning hyperparameters
     units_1 = hp.Int("units_1", min_value=32, max_value=128, step=32, default=64)
@@ -61,9 +53,7 @@ def build_lstm_model(hp):
     return model
 
 
-# -------------------------------------------------------------------
-# 3) Tuning Function
-# -------------------------------------------------------------------
+
 def tune_hyperparameters():
     """
     1) Reads CSVs in 'developed' folder, combining the variables GDP,CPI,UNRATE,IR,BOP
@@ -130,8 +120,8 @@ def tune_hyperparameters():
         objective='val_loss',
         max_trials=100,        
         executions_per_trial=1,  
-        directory='my_tuner_dir',
-        project_name='lstm_multi_output'
+        directory='tuner_results',
+        project_name='lstm_tuning'
     )
 
     # 6) Perform hyperparameter search

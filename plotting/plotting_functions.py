@@ -2,42 +2,55 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import os
+import inspect
 
 def ensure_dir(directory):
     """Ensure the directory exists."""
     if not os.path.exists(directory):
         os.makedirs(directory)
-        
+
+def get_model_prefix():
+    """
+    Determines the model prefix dynamically based on the calling script and model name.
+    """
+    model_name = os.getenv("MODEL_NAME", "default_model")  # Dynamically get model name from environment or default
+    return os.path.join("plotting", "model_plots", model_name)
+
 def plotting():
     """
-    Example function that loops over 'developed' and 'developing' to
-    parse & plot numeric columns in each CSV, saving the plots.
+    Parses and plots numeric columns in CSV files, saving plots dynamically
+    under the appropriate model directory.
     """
     import pandas as pd
     from stationarity.stationarity_tests import parse_time_column
 
-    base_dir = os.path.join('plotting', 'model_plots')
-    ensure_dir(base_dir)
 
     folders = ['developed', 'developing']
+
     for folder in folders:
+        # Decide frequency based on folder name
         freq = 'Q' if folder == 'developed' else 'Y'
-        folder_dir = os.path.join(base_dir, folder)
-        ensure_dir(folder_dir)
+
         print(f"\n--- Folder: {folder} (freq={freq}) ---")
 
+        # List CSV files in this folder
         csv_files = sorted([f for f in os.listdir(folder) if f.lower().endswith('.csv')])
         if not csv_files:
-            print(f"No CSV in '{folder}'. Skipping.")
+            print(f"No CSV files found in '{folder}'. Skipping.")
             continue
 
+        # Process each CSV
         for filename in csv_files:
             file_path = os.path.join(folder, filename)
-            print(f"Processing {file_path} ...")
+            print(f"Plotting each variable from {file_path} ...")
 
+            # Read & parse the time column
             df = pd.read_csv(file_path)
-            if 'TIME' not in df.columns:
-                print(f"Skipping {filename}, no TIME column.")
+
+            # Ensure you have a 'TIME' column
+            time_col = 'TIME'
+            if time_col not in df.columns:
+                print(f"Skipping {filename} - no 'TIME' column found.")
                 continue
 
             df = parse_time_column(df, 'TIME', freq=freq)
@@ -69,10 +82,11 @@ def plot_train_val_test_predictions(
     variable_names
 ):
     """
-    Plots the entire series for each variable, saving plots for:
-      Training, Validation, Test, Predicted
+    Plots the entire series for each variable, saving plots dynamically
+    under the corresponding model folder.
     """
-    base_dir = os.path.join('plotting', 'model_plots', 'train_val_test_predictions')
+    model_prefix = get_model_prefix()
+    base_dir = os.path.join(model_prefix, 'train_val_test_predictions')
     ensure_dir(base_dir)
 
     for i, var in enumerate(variable_names):
@@ -129,9 +143,10 @@ def plot_train_val_test_predictions(
 
 def plot_test_vs_prediction(y_true_inv, y_pred_inv, variable_names):
     """
-    Multi-subplot for actual vs predicted in test set, saving the plot.
+    Multi-subplot for actual vs predicted in the test set, saving the plot dynamically.
     """
-    base_dir = os.path.join('plotting', 'model_plots', 'test_vs_prediction')
+    model_prefix = get_model_prefix()
+    base_dir = os.path.join(model_prefix, 'test_vs_prediction')
     ensure_dir(base_dir)
 
     plot_path = os.path.join(base_dir, "test_vs_prediction.png")
