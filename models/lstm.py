@@ -19,5 +19,5 @@ def lstm(input_size, n_features, neurons, dropout):
 
     outputs = Dense(n_features, activation='linear')(x)
     model = Model(inputs=inputs, outputs=outputs)
-    model.compile(optimizer='adam', loss='mean_squared_error')
+    model.compile(optimizer='adam', loss='mean_absolute_error')
     return model

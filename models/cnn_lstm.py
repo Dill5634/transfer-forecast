@@ -58,6 +58,6 @@ def cnn_lstm(input_size, n_features, filters1, filters2, kernel_size, pool_size,
 
     # Model definition
     model = Model(inputs=inputs, outputs=outputs)
-    model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.001), loss='mean_squared_error', metrics=['mae'])
+    model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.001), loss='mean_absolute_error', metrics=['mae'])
 
     return model

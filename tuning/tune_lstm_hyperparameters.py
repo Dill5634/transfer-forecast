@@ -47,7 +47,7 @@ def build_lstm_model(hp):
 
     # Compile the model
     model = Model(inputs=inputs, outputs=outputs)
-    model.compile(optimizer='adam', loss='mean_squared_error')
+    model.compile(optimizer='adam', loss='mean_absolute_error')
     
     return model
 
@@ -65,7 +65,7 @@ def tune_hyperparameters():
     variables = ['GDP', 'CPI', 'UNRATE', 'IR', 'BOP']
     seq_length = 1
 
-    epochs = 300       
+    epochs = 250       
     batch_size = 32   
 
     # Define directory and project name dynamically
