@@ -26,7 +26,7 @@ def train_cnn_lstm():
     filters2 = 32
     kernel_size = 7
     pool_size = 3
-    neurons = [224, 64]
+    neurons = [224, 144]
     dropout = 0.35
     epochs = 300
     batch_size = 32
