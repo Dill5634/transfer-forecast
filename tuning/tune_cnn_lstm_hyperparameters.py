@@ -52,7 +52,7 @@ def tune_hyperparameters():
     variables = ['GDP', 'CPI', 'UNRATE', 'IR', 'BOP']
     seq_length = 1
 
-    epochs = 300
+    epochs = 200
     batch_size = 32
 
     # Step 1: Load and preprocess data
@@ -102,8 +102,8 @@ def tune_hyperparameters():
     # Step 2: Initialize the Keras Tuner
     tuner = kt.BayesianOptimization(
         build_cnn_lstm_model,
-        objective='val_loss',
-        max_trials=300,  # Number of hyperparameter combinations to try
+        objective=kt.Objective("val_mae", direction="min"),
+        max_trials=300,
         executions_per_trial=1,
         directory=directory_name,
         project_name=project_name
