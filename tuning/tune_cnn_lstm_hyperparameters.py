@@ -94,6 +94,8 @@ def tune_hyperparameters():
 
     print("X_train:", X_train.shape, "y_train:", y_train.shape)
     print("X_val:", X_val.shape, "y_val:", y_val.shape)
+
+
     directory_name = 'tuner_results'
     project_name = 'cnn_lstm_tuning'
 
