@@ -94,15 +94,13 @@ def tune_hyperparameters():
 
     print("X_train:", X_train.shape, "y_train:", y_train.shape)
     print("X_val:", X_val.shape, "y_val:", y_val.shape)
-
-    # Define directory and project name dynamically
     directory_name = 'tuner_results'
     project_name = 'cnn_lstm_tuning'
 
     # Step 2: Initialize the Keras Tuner
     tuner = kt.BayesianOptimization(
         build_cnn_lstm_model,
-        objective=kt.Objective("val_mae", direction="min"),
+        objective='val_loss',
         max_trials=300,
         executions_per_trial=1,
         directory=directory_name,

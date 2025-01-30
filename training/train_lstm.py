@@ -16,7 +16,7 @@ def train_lstm():
     seq_length = 1
     neurons = [224, 144]
     dropout = 0.1
-    epochs = 200
+    epochs = 250
     batch_size = 32
     model_save_name = "LSTM_model.h5"
 

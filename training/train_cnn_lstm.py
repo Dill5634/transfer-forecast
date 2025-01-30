@@ -7,12 +7,6 @@ from models.cnn_lstm import cnn_lstm
 from plotting.plotting_functions import plot_train_val_test_predictions, plot_test_vs_prediction
 from helpers.helper_functions import calculate_stats
 
-import tensorflow as tf
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Conv1D, MaxPooling1D, LSTM, Dense, Flatten, Dropout
-from sklearn.preprocessing import MinMaxScaler
-
-
 def train_cnn_lstm():
     """
     Trains a CNN-LSTM model for macroeconomic forecasting.
@@ -28,6 +22,7 @@ def train_cnn_lstm():
     pool_size = 3
     neurons = [224, 144]
     dropout = 0.35
+    dense_units = 64
     epochs = 300
     batch_size = 32
     model_save_name = "cnn_lstm_model.h5"
@@ -79,7 +74,7 @@ def train_cnn_lstm():
 
     # 5) Build and train the model
     n_features = len(variables)
-    model = cnn_lstm(seq_length, n_features, filters1, filters2, kernel_size, pool_size, neurons, dropout, dense_units=dense_units)
+    model = cnn_lstm(seq_length, n_features, filters1, filters2, kernel_size, pool_size, neurons, dropout, dense_units)
     model.fit(
         X_train, y_train,
         epochs=epochs,

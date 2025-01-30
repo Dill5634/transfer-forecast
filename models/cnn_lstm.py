@@ -6,7 +6,7 @@ from tensorflow.keras.layers import (
 )
 
 
-def cnn_lstm(input_size, n_features, filters1, filters2, kernel_size, pool_size, neurons, dropout, use_batchnorm=True, dense_units=64):
+def cnn_lstm(input_size, n_features, filters1, filters2, kernel_size, pool_size, neurons, dropout, dense_units, use_batchnorm=True):
     """
     Creates a CNN-LSTM model for multi-output time-series forecasting.
 
@@ -19,8 +19,8 @@ def cnn_lstm(input_size, n_features, filters1, filters2, kernel_size, pool_size,
     - pool_size (int):     Size of the pooling window.
     - neurons (list):      A list of integers for the number of LSTM units per layer.
     - dropout (float):     Dropout rate for regularization in LSTM layers.
-    - use_batchnorm (bool):If True, apply batch normalization after each Conv.
     - dense_units (int):   Number of units in the dense layer before output.
+    - use_batchnorm (bool):If True, apply batch normalization after each Conv.
 
     Returns:
     - model (Model): A compiled Keras model that outputs n_features values (multi-output).
@@ -39,7 +39,6 @@ def cnn_lstm(input_size, n_features, filters1, filters2, kernel_size, pool_size,
     if input_size > pool_size:
         x = MaxPooling1D(pool_size=pool_size)(x)
 
-    
     x = Reshape((x.shape[1], filters2))(x)
 
     # LSTM layers
@@ -58,6 +57,6 @@ def cnn_lstm(input_size, n_features, filters1, filters2, kernel_size, pool_size,
 
     # Model definition
     model = Model(inputs=inputs, outputs=outputs)
-    model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.001), loss='mean_absolute_error', metrics=['mae'])
+    model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.001), loss='huber', metrics=['mae'])
 
     return model
