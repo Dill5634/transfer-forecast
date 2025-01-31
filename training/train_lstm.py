@@ -14,8 +14,8 @@ def train_lstm():
     folder_path = "developed"
     variables = ['GDP', 'CPI', 'UNRATE', 'IR', 'BOP']
     seq_length = 1
-    neurons = [224, 144]
-    dropout = 0.1
+    neurons = [64, 64]
+    dropout = 0
     epochs = 250
     batch_size = 32
     model_save_name = "LSTM_model.h5"

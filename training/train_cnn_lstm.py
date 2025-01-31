@@ -1,7 +1,7 @@
 import os
 import pandas as pd
 import numpy as np
-from sklearn.preprocessing import MinMaxScaler
+from sklearn.preprocessing import MinMaxScaler, StandardScaler
 
 from models.cnn_lstm import cnn_lstm
 from plotting.plotting_functions import plot_train_val_test_predictions, plot_test_vs_prediction
@@ -19,7 +19,7 @@ def train_cnn_lstm():
     filters1 = 48
     filters2 = 32
     kernel_size = 7
-    pool_size = 3
+    pool_size = 1
     neurons = [224, 144]
     dropout = 0.35
     dense_units = 64
@@ -49,7 +49,7 @@ def train_cnn_lstm():
     val_end = int(N * 0.85)
     test_end = N  # Explicitly define test_end
 
-    scaler = MinMaxScaler(feature_range=(0, 1))
+    scaler = StandardScaler()
     scaler.fit(data_arr[:train_end])
     full_scaled = scaler.transform(data_arr)
 

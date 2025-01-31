@@ -1,7 +1,7 @@
 import os
 import numpy as np
 import pandas as pd
-from sklearn.preprocessing import MinMaxScaler
+from sklearn.preprocessing import MinMaxScaler, StandardScaler
 from tensorflow.keras.models import load_model
 import keras_tuner as kt
 from models.cnn_lstm import cnn_lstm
@@ -23,13 +23,11 @@ def build_cnn_lstm_model(hp):
     n_features = 5 
 
     # Tuning hyperparameters
-    filters1 = hp.Int("filters1", min_value=16, max_value=256, step=16) 
-    filters2 = hp.Int("filters2", min_value=16, max_value=256, step=16)
-    kernel_size = hp.Choice("kernel_size", [2, 3, 5, 7])
-    pool_size = hp.Choice("pool_size", [1, 2, 3])
-    neurons = [hp.Int(f"neurons_{i+1}", min_value=16, max_value=256, step=16) for i in range(2)]
+    filters1 = hp.Int("filters1", min_value=16, max_value=128, step=16) 
+    filters2 = hp.Int("filters2", min_value=16, max_value=128, step=16)
+    neurons = [hp.Int(f"neurons_{i+1}", min_value=16, max_value=128, step=16) for i in range(2)]
     dropout = hp.Float("dropout", min_value=0.0, max_value=0.5, step=0.05)
-    dense_units = hp.Int("dense_units", min_value=16, max_value=256, step=16)
+    dense_units = hp.Int("dense_units", min_value=16, max_value=128, step=16)
 
 
     return cnn_lstm(
@@ -37,8 +35,8 @@ def build_cnn_lstm_model(hp):
         n_features=n_features,
         filters1=filters1,
         filters2=filters2,
-        kernel_size=kernel_size,
-        pool_size=pool_size,
+        kernel_size=1,
+        pool_size=1,
         neurons=neurons,
         dropout=dropout,
         dense_units=dense_units
@@ -75,7 +73,7 @@ def tune_hyperparameters():
     train_end = int(N * 0.7)
     val_end = int(N * 0.85)
 
-    scaler = MinMaxScaler(feature_range=(0, 1))
+    scaler = StandardScaler()
     scaler.fit(data_arr[:train_end])
     full_scaled = scaler.transform(data_arr)
 

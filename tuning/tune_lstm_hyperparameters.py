@@ -25,9 +25,9 @@ def build_lstm_model(hp):
     n_features = 5
 
     # Tuning hyperparameters
-    units_1 = hp.Int("units_1", min_value=32, max_value=128, step=32, default=64)
-    units_2 = hp.Int("units_2", min_value=32, max_value=128, step=32, default=64)
-    dropout_rate = hp.Float("dropout_rate", min_value=0.0, max_value=0.5, step=0.05, default=0.2)
+    units_1 = hp.Int("units_1", min_value=16, max_value=128, step=16)
+    units_2 = hp.Int("units_2", min_value=16, max_value=128, step=16)
+    dropout_rate = hp.Float("dropout_rate", min_value=0.0, max_value=0.5, step=0.05)
 
     inputs = Input(shape=(seq_length, n_features))
     layer = Reshape((seq_length, n_features))(inputs)
@@ -65,7 +65,7 @@ def tune_hyperparameters():
     variables = ['GDP', 'CPI', 'UNRATE', 'IR', 'BOP']
     seq_length = 1
 
-    epochs = 200       
+    epochs = 250       
     batch_size = 32   
 
     # Define directory and project name dynamically
