@@ -16,13 +16,13 @@ def train_cnn_lstm():
     variables = ['GDP', 'CPI', 'UNRATE', 'IR', 'BOP']
     seq_length = 1
 
-    filters1 = 48
-    filters2 = 32
-    kernel_size = 7
+    filters1 = 64
+    filters2 = 16
+    kernel_size = 1
     pool_size = 1
-    neurons = [224, 144]
-    dropout = 0.35
-    dense_units = 64
+    neurons = [16, 48]
+    dropout = 0.4
+    dense_units = 96
     epochs = 300
     batch_size = 32
     model_save_name = "cnn_lstm_model.h5"
