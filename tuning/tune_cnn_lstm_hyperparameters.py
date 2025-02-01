@@ -97,7 +97,7 @@ def tune_hyperparameters():
     directory_name = 'tuner_results'
     project_name = 'cnn_lstm_tuning'
 
-    # Step 2: Initialize the Keras Tuner
+    # Step 2: Initialise the Keras Tuner
     tuner = kt.BayesianOptimization(
         build_cnn_lstm_model,
         objective='val_loss',
