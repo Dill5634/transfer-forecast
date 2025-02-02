@@ -100,9 +100,8 @@ def train_gru():
 
 
     # 7) Evaluate on Test Data
-    test_loss, test_mse = model.evaluate(X_test, y_test, verbose=0)
-    print(f"\nTest Loss (MAE) = {test_loss:.6f}")
-    print(f"Test MSE        = {test_mse:.6f}")
+    test_loss = model.evaluate(X_test, y_test, verbose=0)
+    print(f"Test Loss = {test_loss:.6f}")
 
 
     # 8) Predictions & Inverse Transform
