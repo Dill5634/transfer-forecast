@@ -22,11 +22,8 @@ def train_gru():
     seq_length = 1
 
 
-    gru_units = [128]
-    #gru_units = [128, 128]
-    #gru_units = [128, 128, 128]          
+    gru_units = [112]        
     dropout_rate = 0.0
-    dense_units = 32
     epochs = 250
     batch_size = 32
     model_save_name = "GRU_model.h5"
@@ -90,8 +87,7 @@ def train_gru():
         input_size=seq_length,
         n_features=n_features,
         gru_units=gru_units,
-        dropout_rate=dropout_rate,
-        dense_units=dense_units
+        dropout_rate=dropout_rate
     )
 
     history = model.fit(
@@ -148,9 +144,7 @@ def train_gru():
 
     plot_test_vs_prediction(y_test_inv, y_pred_test_inv, variables)
 
-    # ---------------------------
     # 11) Save Model
-    # ---------------------------
     model.save(model_save_name)
     print(f"\nModel saved as '{model_save_name}'")
 

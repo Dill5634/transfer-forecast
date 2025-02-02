@@ -1,7 +1,7 @@
 import os
 import numpy as np
 import pandas as pd
-from sklearn.preprocessing import MinMaxScaler, StandardScaler
+from sklearn.preprocessing import MinMaxScaler
 from tensorflow.keras.models import load_model
 import keras_tuner as kt
 from models.gru import gru
@@ -14,7 +14,6 @@ def build_gru_model(hp):
     - num_layers   : number of GRU layers (1-3)
     - units_i      : number of GRU units in each GRU layer (16-128 in steps of 16)
     - dropout_rate : dropout rate (0-0.5 in steps of 0.05)
-    - dense_units  : units in a dense layer before final output (16-128 in steps of 16)
     """
 
     seq_length = 1
@@ -24,10 +23,11 @@ def build_gru_model(hp):
     num_layers = hp.Int("num_layers", min_value=1, max_value=3, step=1)
 
 
+
     # 2) Determine GRU units for each layer
     gru_units_list = []
     for i in range(num_layers):
-        units_i = hp.Int(f"units_{i+1}", min_value=16, max_value=128, step=16)
+        units_i = hp.Int(f"units_{i+1}", min_value=16, max_value=256, step=16)
         gru_units_list.append(units_i)
 
     # 3) Dropout rate
@@ -82,7 +82,6 @@ def tune_hyperparameters():
     train_end = int(N * 0.7)
     val_end = int(N * 0.85)
 
-    #scaler = StandardScaler()
     scaler = MinMaxScaler(feature_range=(0,1))
     scaler.fit(data_arr[:train_end])
     full_scaled = scaler.transform(data_arr)
@@ -106,12 +105,12 @@ def tune_hyperparameters():
 
     # Step 2: Initialize the Keras Tuner
     directory_name = 'tuner_results'
-    project_name = 'gru_tuning1'
+    project_name = 'gru_tuning'
 
     tuner = kt.BayesianOptimization(
         hypermodel=build_gru_model,
         objective='val_loss',
-        max_trials=200,  # Adjust as needed
+        max_trials=200,
         executions_per_trial=1,
         directory=directory_name,
         project_name=project_name

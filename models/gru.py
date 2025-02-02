@@ -1,8 +1,6 @@
 # my_project/models/gru.py
 import tensorflow as tf
 from tensorflow.keras import layers, models
-
-import tensorflow as tf
 from tensorflow.keras import Sequential
 from tensorflow.keras.layers import Reshape, GRU, Dropout, Dense
 
@@ -12,14 +10,10 @@ def gru(input_size, n_features, gru_units, dropout_rate):
     
     Parameters
     ----------
-    input_size : int
-        Sequence length (e.g., 1 for single-step).
+    input_size : int.
     n_features : int
-        Number of features (e.g., 5).
-    neurons    : list of int
-        List of units for each GRU layer, e.g. [64, 64].
-    dropout    : float
-        Dropout rate to apply after each GRU layer.
+    gru_units    : list of int
+    dropout_rate    : float
     """
     model = Sequential()
     model.add(Reshape((input_size, n_features), 
