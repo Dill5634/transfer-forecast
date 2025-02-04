@@ -1,3 +1,4 @@
+# train_cnn_lstm.py
 import os
 import pandas as pd
 import numpy as np
@@ -10,6 +11,7 @@ from helpers.helper_functions import calculate_stats
 def train_cnn_lstm():
     """
     Trains a CNN-LSTM model for macroeconomic forecasting.
+    Saves model and stats CSV in 'trained_models/<model_subfolder>/'.
     """
     os.environ["MODEL_NAME"] = "CNN-LSTM"
     folder_path = "developed"
@@ -23,17 +25,19 @@ def train_cnn_lstm():
     neurons = [16, 48]
     dropout = 0.4
     dense_units = 96
+
     epochs = 300
     batch_size = 32
+
+
     model_save_name = "cnn_lstm_model.h5"
 
-   # 1) Collect CSV files
+    # 1) Load data from CSV files
     csv_files = sorted([f for f in os.listdir(folder_path) if f.lower().endswith('.csv')])
     if not csv_files:
         print(f"No CSV found in '{folder_path}'.")
         return
 
-    # 2) Concatenate them
     df_list = []
     for f in csv_files:
         path = os.path.join(folder_path, f)
@@ -42,13 +46,14 @@ def train_cnn_lstm():
     combined_df = pd.concat(df_list, axis=0, ignore_index=True)
     print("Combined shape:", combined_df.shape)
 
-    # 3) Partition: train(70%), val(15%), test(15%)
+    # 2) Train/Val/Test Split
     data_arr = combined_df.values
     N = len(data_arr)
     train_end = int(N * 0.7)
-    val_end = int(N * 0.85)
-    test_end = N  # Explicitly define test_end
+    val_end   = int(N * 0.85)
+    test_end  = N
 
+    # 3) Scaling
     scaler = StandardScaler()
     scaler.fit(data_arr[:train_end])
     full_scaled = scaler.transform(data_arr)
@@ -56,25 +61,32 @@ def train_cnn_lstm():
     # 4) Build sequences
     X, y = [], []
     for i in range(len(full_scaled) - seq_length):
-        X.append(full_scaled[i: i + seq_length])
+        X.append(full_scaled[i : i + seq_length])
         y.append(full_scaled[i + seq_length])
     X = np.array(X)
     y = np.array(y)
 
-    # Create time-based indices
     train_size = train_end - seq_length
-    val_size = val_end - seq_length
+    val_size   = val_end - seq_length
+
     X_train, y_train = X[:train_size], y[:train_size]
-    X_val, y_val = X[train_size:val_size], y[train_size:val_size]
-    X_test, y_test = X[val_size:test_end - seq_length], y[val_size:test_end - seq_length]
+    X_val,   y_val   = X[train_size:val_size], y[train_size:val_size]
+    X_test,  y_test  = X[val_size:test_end - seq_length], y[val_size:test_end - seq_length]
 
     print("X_train:", X_train.shape, "y_train:", y_train.shape)
-    print("X_val:  ", X_val.shape, "y_val:", y_val.shape)
-    print("X_test: ", X_test.shape, "y_test:", y_test.shape)
+    print("X_val:  ", X_val.shape,   "y_val:",   y_val.shape)
+    print("X_test: ", X_test.shape,  "y_test:",  y_test.shape)
 
-    # 5) Build and train the model
+    # 5) Build & Train Model
     n_features = len(variables)
-    model = cnn_lstm(seq_length, n_features, filters1, filters2, kernel_size, pool_size, neurons, dropout, dense_units)
+    model = cnn_lstm(
+        seq_length, n_features,
+        filters1, filters2,
+        kernel_size, pool_size,
+        neurons, dropout,
+        dense_units
+    )
+
     model.fit(
         X_train, y_train,
         epochs=epochs,
@@ -87,12 +99,12 @@ def train_cnn_lstm():
     test_loss, test_mae = model.evaluate(X_test, y_test, verbose=0)
     print(f"Test Loss = {test_loss:.6f}, Test MAE = {test_mae:.6f}")
 
-    # 7) Predict on test set
+    # 7) Predictions & Inverse Transform
     y_pred_test = model.predict(X_test)
     y_pred_test_inv = scaler.inverse_transform(y_pred_test)
-    y_test_inv = scaler.inverse_transform(y_test)
+    y_test_inv      = scaler.inverse_transform(y_test)
 
-    # 8) Calculate stats
+    # 8) Calculate Statistics
     stats = calculate_stats(y_test_inv, y_pred_test_inv)
     for i, var in enumerate(variables):
         print(f"\n--- {var} ---")
@@ -102,16 +114,23 @@ def train_cnn_lstm():
         print(f"MAPE: {stats['MAPE'][i]:.2f}%")
         print(f"Accuracy ~ {stats['Accuracy'][i]:.2f}%")
 
-    # 9) For full data plotting
+
+    results_df = pd.DataFrame({
+        "Variable": variables,
+        "MSE": stats["MSE"],
+        "MAE": stats["MAE"],
+        "RMSE": stats["RMSE"],
+        "MAPE": stats["MAPE"],
+        "Accuracy": stats["Accuracy"]
+    })
+
+    # 9) Plot results
     full_data_inv = scaler.inverse_transform(full_scaled)
 
-    # train range = [seq_length..train_end)
-    # val   range = [train_end..val_end)
-    # test  range = [val_end..test_end)
-    train_start = seq_length
-    val_start = train_end
 
-    # Plot full data + test predictions
+    train_start = seq_length
+    val_start   = train_end
+
     plot_train_val_test_predictions(
         full_data=full_data_inv,
         predictions_inverse=y_pred_test_inv,
@@ -124,12 +143,24 @@ def train_cnn_lstm():
         variable_names=variables
     )
 
-    # Additionally, plot the test portion in multi-subplot
     plot_test_vs_prediction(y_test_inv, y_pred_test_inv, variables)
 
-    # 10) Save model
-    model.save(model_save_name)
-    print(f"Model saved as '{model_save_name}'")
+    # 10) Save Model & Stats
+    model_save_folder = "trained_models"
+    model_base_name = os.path.splitext(model_save_name)[0]
+    model_subfolder = os.path.join(model_save_folder, model_base_name)
+    os.makedirs(model_subfolder, exist_ok=True)
+
+ 
+    final_model_path = os.path.join(model_subfolder, model_save_name)
+    model.save(final_model_path)
+    print(f"\nModel saved as '{final_model_path}'")
+
+
+    stats_csv_path = os.path.join(model_subfolder, f"{model_base_name}_stats.csv")
+    results_df.to_csv(stats_csv_path, index=False)
+    print(f"Statistics saved as '{stats_csv_path}'")
+
 
 if __name__ == "__main__":
     train_cnn_lstm()

@@ -20,6 +20,7 @@ def train_lstm():
     batch_size = 32
     model_save_name = "LSTM_model.h5"
 
+    # 1) Load data from CSV files
     csv_files = sorted([f for f in os.listdir(folder_path) if f.lower().endswith('.csv')])
     if not csv_files:
         print(f"No CSV found in '{folder_path}'.")
@@ -33,17 +34,19 @@ def train_lstm():
     combined_df = pd.concat(df_list, axis=0, ignore_index=True)
     print("Combined shape:", combined_df.shape)
 
+    # 2) Train/Val/Test Split
     data_arr = combined_df.values
     N = len(data_arr)
     train_end = int(N * 0.7)
     val_end   = int(N * 0.85)
     test_end  = N
 
+    # 3) Scaling
     scaler = MinMaxScaler(feature_range=(0,1))
     scaler.fit(data_arr[:train_end])
     full_scaled = scaler.transform(data_arr)
 
-    # Build sequences
+    # 4) Build sequences
     X, y = [], []
     for i in range(len(full_scaled) - seq_length):
         X.append(full_scaled[i:i+seq_length])
@@ -53,6 +56,7 @@ def train_lstm():
 
     train_size = train_end - seq_length
     val_size   = val_end - seq_length
+
     X_train, y_train = X[:train_size], y[:train_size]
     X_val,   y_val   = X[train_size:val_size], y[train_size:val_size]
     X_test,  y_test  = X[val_size:], y[val_size:]
@@ -61,6 +65,7 @@ def train_lstm():
     print("X_val:", X_val.shape, "y_val:", y_val.shape)
     print("X_test:", X_test.shape, "y_test:", y_test.shape)
 
+    # 5) Build & Train Model
     n_features = len(variables)
     model = lstm(seq_length, n_features, neurons, dropout)
     model.fit(
@@ -71,14 +76,16 @@ def train_lstm():
         verbose=1
     )
 
+    # 6) Evaluate on test set
     test_loss = model.evaluate(X_test, y_test, verbose=0)
     print(f"Test Loss = {test_loss:.6f}")
 
+    # 7) Predictions & Inverse Transform
     y_pred_test = model.predict(X_test)
     y_pred_test_inv = scaler.inverse_transform(y_pred_test)
     y_test_inv = scaler.inverse_transform(y_test)
 
-    # Stats
+    # 8) Calculate Statistics
     stats = calculate_stats(y_test_inv, y_pred_test_inv)
     for i, var in enumerate(variables):
         print(f"\n--- {var} ---")
@@ -88,12 +95,21 @@ def train_lstm():
         print(f"MAPE: {stats['MAPE'][i]:.2f}%")
         print(f"Accuracy ~ {stats['Accuracy'][i]:.2f}%")
 
+    results_df = pd.DataFrame({
+        "Variable": variables,
+        "MSE": stats["MSE"],
+        "MAE": stats["MAE"],
+        "RMSE": stats["RMSE"],
+        "MAPE": stats["MAPE"],
+        "Accuracy": stats["Accuracy"]
+    })
+
+    # 9) Plot Results
     full_data_inv = scaler.inverse_transform(full_scaled)
     train_start = seq_length
     val_start   = train_end
     test_start  = val_end
 
-    # Plot
     plot_train_val_test_predictions(
         full_data=full_data_inv,
         predictions_inverse=y_pred_test_inv,
@@ -108,7 +124,23 @@ def train_lstm():
 
     plot_test_vs_prediction(y_test_inv, y_pred_test_inv, variables)
 
-    model.save(model_save_name)
-    print(f"Model saved as '{model_save_name}'")
+    # 10) Save Model & Stats
+    model_save_folder = "trained_models"
+
+    model_base_name = os.path.splitext(model_save_name)[0]
+    model_subfolder = os.path.join(model_save_folder, model_base_name)
+    os.makedirs(model_subfolder, exist_ok=True)
+
+    
+    final_model_path = os.path.join(model_subfolder, model_save_name)
+    model.save(final_model_path)
+    print(f"\nModel saved as '{final_model_path}'")
+
+   
+    stats_csv_path = os.path.join(model_subfolder, f"{model_base_name}_stats.csv")
+    results_df.to_csv(stats_csv_path, index=False)
+    print(f"Statistics saved as '{stats_csv_path}'")
+
+
 if __name__ == "__main__":
     train_lstm()

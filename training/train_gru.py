@@ -3,24 +3,17 @@ import os
 import pandas as pd
 import numpy as np
 from sklearn.preprocessing import MinMaxScaler
+
 from models.gru import gru
 from plotting.plotting_functions import plot_train_val_test_predictions, plot_test_vs_prediction
 from helpers.helper_functions import calculate_stats
 
 
 def train_gru():
-    """
-    Trains a GRU model on the CSV files in the 'developed' directory,
-    using GDP, CPI, UNRATE, IR, BOP as features.
-    """
-
-
-    # 1) Configuration
     os.environ["MODEL_NAME"] = "GRU"
     folder_path = "developed"
     variables = ['GDP', 'CPI', 'UNRATE', 'IR', 'BOP']
     seq_length = 1
-
 
     gru_units = [112]        
     dropout_rate = 0.0
@@ -28,13 +21,11 @@ def train_gru():
     batch_size = 32
     model_save_name = "GRU_model.h5"
 
-
-    # 2) Data Loading
+    # 1) Load data from CSV files
     csv_files = sorted([f for f in os.listdir(folder_path) if f.lower().endswith('.csv')])
     if not csv_files:
         print(f"No CSV found in '{folder_path}'.")
         return
-
 
     df_list = []
     for f in csv_files:
@@ -44,22 +35,19 @@ def train_gru():
     combined_df = pd.concat(df_list, axis=0, ignore_index=True)
     print("Combined shape:", combined_df.shape)
 
-
-    # 3) Train/Val/Test Split
+    # 2) Train/Val/Test Split
     data_arr = combined_df.values
     N = len(data_arr)
     train_end = int(N * 0.7)
     val_end   = int(N * 0.85)
     test_end  = N
 
-
-    # 4) Scaling
+    # 3) Scaling
     scaler = MinMaxScaler(feature_range=(0,1))
     scaler.fit(data_arr[:train_end])
     full_scaled = scaler.transform(data_arr)
 
-
-    # 5) Build Sequences
+    # 4) Build Sequences
     X, y = [], []
     for i in range(len(full_scaled) - seq_length):
         X.append(full_scaled[i : i + seq_length])
@@ -68,7 +56,6 @@ def train_gru():
     X = np.array(X)
     y = np.array(y)
 
-    # Indices for train, val, test
     train_size = train_end - seq_length
     val_size   = val_end - seq_length
 
@@ -80,8 +67,7 @@ def train_gru():
     print("X_val:  ", X_val.shape,   "y_val:",   y_val.shape)
     print("X_test: ", X_test.shape,  "y_test:",  y_test.shape)
 
-
-    # 6) Build & Train GRU Model
+    # 5) Build & Train Model
     n_features = len(variables)
     model = gru(
         input_size=seq_length,
@@ -98,19 +84,16 @@ def train_gru():
         verbose=1
     )
 
-
-    # 7) Evaluate on Test Data
+    # 6) Evaluate on test set
     test_loss = model.evaluate(X_test, y_test, verbose=0)
-    print(f"Test Loss = {test_loss:.6f}")
+    print(f"\nTest Loss = {test_loss:.6f}")
 
-
-    # 8) Predictions & Inverse Transform
+    # 7) Predictions & Inverse Transform
     y_pred_test = model.predict(X_test)
     y_pred_test_inv = scaler.inverse_transform(y_pred_test)
     y_test_inv      = scaler.inverse_transform(y_test)
 
-
-    # 9) Calculate Statistics
+    # 8) Calculate Statistics
     stats = calculate_stats(y_test_inv, y_pred_test_inv)
     for i, var in enumerate(variables):
         print(f"\n--- {var} ---")
@@ -120,11 +103,19 @@ def train_gru():
         print(f"  MAPE: {stats['MAPE'][i]:.2f}%")
         print(f"  Accuracy: ~ {stats['Accuracy'][i]:.2f}%")
 
+    # Convert stats to a DataFrame
+    results_df = pd.DataFrame({
+        "Variable": variables,
+        "MSE": stats["MSE"],
+        "MAE": stats["MAE"],
+        "RMSE": stats["RMSE"],
+        "MAPE": stats["MAPE"],
+        "Accuracy": stats["Accuracy"]
+    })
 
-    # 10) Plot Results
+    # 9) Plot Results
     full_data_inv = scaler.inverse_transform(full_scaled)
 
-    # Adjust for offset if seq_length > 1
     train_start = seq_length
     val_start   = train_end
     test_start  = val_end
@@ -143,9 +134,22 @@ def train_gru():
 
     plot_test_vs_prediction(y_test_inv, y_pred_test_inv, variables)
 
-    # 11) Save Model
-    model.save(model_save_name)
-    print(f"\nModel saved as '{model_save_name}'")
+    # 10) Save Model & Stats
+    model_save_folder = "trained_models"
+
+    model_base_name = os.path.splitext(model_save_name)[0]
+    model_subfolder = os.path.join(model_save_folder, model_base_name)
+    os.makedirs(model_subfolder, exist_ok=True)
+
+    
+    final_model_path = os.path.join(model_subfolder, model_save_name)
+    model.save(final_model_path)
+    print(f"\nModel saved as '{final_model_path}'")
+
+   
+    stats_csv_path = os.path.join(model_subfolder, f"{model_base_name}_stats.csv")
+    results_df.to_csv(stats_csv_path, index=False)
+    print(f"Statistics saved as '{stats_csv_path}'")
 
 
 if __name__ == "__main__":
