@@ -32,3 +32,13 @@ def calculate_stats(y_true, y_pred):
         stats_dict["MAPE"].append(mape_val)
         stats_dict["Accuracy"].append(acc_val)
     return stats_dict
+
+
+def parse_list_of_ints(s):
+    """
+    Convert a string like "64,32" into [64,32].
+    If s is None or empty, return None.
+    """
+    if s is None or s.strip() == "":
+        return None
+    return list(map(int, s.split(",")))

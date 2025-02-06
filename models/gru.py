@@ -4,16 +4,9 @@ from tensorflow.keras import layers, models
 from tensorflow.keras import Sequential
 from tensorflow.keras.layers import Reshape, GRU, Dropout, Dense
 
-def gru(input_size, n_features, gru_units, dropout_rate):
+def gru(input_size, n_features, gru_units, dropout):
     """
     Creates a GRU model for multi-output forecasting using Sequential API.
-    
-    Parameters
-    ----------
-    input_size : int.
-    n_features : int
-    gru_units    : list of int
-    dropout_rate    : float
     """
     model = Sequential()
     model.add(Reshape((input_size, n_features), 
@@ -27,8 +20,8 @@ def gru(input_size, n_features, gru_units, dropout_rate):
         else:
             model.add(GRU(n, return_sequences=return_seq))
         
-        if dropout_rate > 0:
-            model.add(Dropout(dropout_rate))
+        if dropout > 0:
+            model.add(Dropout(dropout))
 
     model.add(Dense(n_features, activation='linear'))
     model.compile(optimizer='adam', loss='mean_absolute_error')
