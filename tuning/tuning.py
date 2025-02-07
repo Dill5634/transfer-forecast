@@ -48,13 +48,6 @@ def build_lstm_model(hp):
 def tune_lstm_hyperparameters():
     """
     Tune hyperparameters for the LSTM model.
-    Steps:
-      1. Load CSV files from 'developed' folder (using variables GDP, CPI, UNRATE, IR, BOP).
-      2. Partition data: 70% train, 15% validation.
-      3. Scale data using MinMaxScaler.
-      4. Build supervised sequences (seq_length=1).
-      5. Run BayesianOptimization tuning.
-      6. Retrain best model and save it.
     """
     folder_path = "developed"
     variables = ['GDP', 'CPI', 'UNRATE', 'IR', 'BOP']
@@ -273,12 +266,11 @@ def build_cnn_lstm_model(hp):
 def tune_cnn_lstm_hyperparameters():
     """
     Tune hyperparameters for the CNN-LSTM model.
-    Uses StandardScaler for data scaling.
     """
     folder_path = "developed"
     variables = ['GDP', 'CPI', 'UNRATE', 'IR', 'BOP']
     seq_length = 1
-    epochs = 250
+    epochs = 300
     batch_size = 32
 
     csv_files = sorted([f for f in os.listdir(folder_path) if f.lower().endswith('.csv')])
