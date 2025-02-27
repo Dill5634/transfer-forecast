@@ -2,23 +2,17 @@ import os
 import argparse
 import numpy as np
 import pandas as pd
-from sklearn.preprocessing import MinMaxScaler
-
+import matplotlib.pyplot as plt
+from sklearn.preprocessing import MinMaxScaler, StandardScaler
+import tensorflow as tf
+from tensorflow.keras.models import load_model
 from models.lstm import lstm
 from models.gru import gru
 from models.cnn_lstm import cnn_lstm
-
-from plotting.plotting_functions import (
-    plot_train_val_test_predictions,
-    plot_test_vs_prediction
-)
+from plotting.plotting_functions import plot_train_val_test_predictions, plot_test_vs_prediction
 from helpers.helper_functions import calculate_stats, parse_list_of_ints
 
-
-
-
-
-#  1) LSTM training function
+# 1) LSTM training function
 def train_lstm(
     epochs=None,
     batch_size=None,
@@ -50,7 +44,6 @@ def train_lstm(
     if model_save_name is None:
         model_save_name = "LSTM_model.h5"
 
-
     training(
         folder_path=folder_path,
         variables=variables,
@@ -64,7 +57,7 @@ def train_lstm(
     )
 
 
-#  2) GRU training function
+# 2) GRU training function
 def train_gru(
     epochs=None,
     batch_size=None,
@@ -81,7 +74,6 @@ def train_gru(
     """
     os.environ["MODEL_NAME"] = "GRU"
 
-
     if variables is None:
         variables = ['GDP', 'CPI', 'UNRATE', 'IR', 'BOP']
     if seq_length is None:
@@ -97,7 +89,6 @@ def train_gru(
     if model_save_name is None:
         model_save_name = "GRU_model.h5"
 
-
     training(
         folder_path=folder_path,
         variables=variables,
@@ -111,7 +102,7 @@ def train_gru(
     )
 
 
-#  3) CNN-LSTM training function
+# 3) CNN-LSTM training function
 def train_cnn_lstm(
     epochs=None,
     batch_size=None,
@@ -131,7 +122,7 @@ def train_cnn_lstm(
     Trains a CNN-LSTM model. Overridden hyperparameters come in as function arguments;
     if they are None, fall back to defaults.
     """
-    os.environ["MODEL_NAME"] = "CNN-LSTM"
+    os.environ["MODEL_NAME"] = "CNN_LSTM"
 
     if variables is None:
         variables = ['GDP', 'CPI', 'UNRATE', 'IR', 'BOP']
@@ -175,7 +166,8 @@ def train_cnn_lstm(
         model_save_name=model_save_name
     )
 
-#  4) The training pipeline
+
+# 4) The training pipeline
 def training(
     folder_path,
     variables,
@@ -184,16 +176,13 @@ def training(
     epochs,
     batch_size,
     model_save_name,
-    
-    
+    # LSTM-specific
     lstm_neurons=None,
     lstm_dropout=None,
-
-
+    # GRU-specific
     gru_units=None,
     gru_dropout_rate=None,
-
-
+    # CNN-LSTM-specific
     filters1=None,
     filters2=None,
     kernel_size=None,
@@ -217,7 +206,6 @@ def training(
         path = os.path.join(folder_path, f)
         temp_df = pd.read_csv(path)
         df_list.append(temp_df[variables])
-
     combined_df = pd.concat(df_list, axis=0, ignore_index=True)
     print("Combined shape:", combined_df.shape)
 
@@ -229,8 +217,14 @@ def training(
     test_end  = N
 
     # 3) Scaling
-    scaler = MinMaxScaler(feature_range=(0, 1))
-    scaler.fit(data_arr[:train_end])
+    scaler_map = {
+        "cnn_lstm": StandardScaler,
+        "lstm": lambda: MinMaxScaler(feature_range=(0, 1)),
+        "gru": lambda: MinMaxScaler(feature_range=(0, 1))
+    }
+    scaler_fn = scaler_map.get(model_type.lower(), lambda: MinMaxScaler(feature_range=(0, 1)))
+    scaler = scaler_fn()
+    scaler.fit(data_arr)
     full_scaled = scaler.transform(data_arr)
 
     # 4) Build Sequences
@@ -247,7 +241,6 @@ def training(
     X_train, y_train = X[:train_size], y[:train_size]
     X_val,   y_val   = X[train_size:val_size], y[train_size:val_size]
     X_test,  y_test  = X[val_size:], y[val_size:]
-
     print("X_train:", X_train.shape, "y_train:", y_train.shape)
     print("X_val:",   X_val.shape,   "y_val:",   y_val.shape)
     print("X_test:",  X_test.shape,  "y_test:",  y_test.shape)
@@ -272,7 +265,6 @@ def training(
             dropout=gru_dropout_rate
         )
     elif model_type.lower() == "cnn_lstm":
-        
         model = cnn_lstm(
             seq_length=seq_length,
             n_features=n_features,
@@ -306,7 +298,6 @@ def training(
         test_loss_str = f"{test_loss:.6f}"
     print(f"\nTest Loss = {test_loss_str}")
 
-
     # 8) Predictions & Inverse Transform
     y_pred_test = model.predict(X_test)
     y_pred_test_inv = scaler.inverse_transform(y_pred_test)
@@ -331,12 +322,13 @@ def training(
         "Accuracy": stats["Accuracy"]
     })
 
-    # 10) Plot Results
+    # 10) Plot Results using subdir="training"
     full_data_inv = scaler.inverse_transform(full_scaled)
     train_start = seq_length
     val_start   = train_end
     test_start  = val_end
 
+    # Use the updated plotting functions with an explicit subdir parameter.
     plot_train_val_test_predictions(
         full_data=full_data_inv,
         predictions_inverse=y_pred_test_inv,
@@ -346,9 +338,10 @@ def training(
         val_end=val_end,
         test_start=test_start,
         test_end=test_end,
-        variable_names=variables
+        variable_names=variables,
+        subdir="training"
     )
-    plot_test_vs_prediction(y_test_inv, y_pred_test_inv, variables)
+    plot_test_vs_prediction(y_test_inv, y_pred_test_inv, variables, subdir="training")
 
     # 11) Save Model & Stats
     model_save_folder = "trained_models"
@@ -365,41 +358,40 @@ def training(
     print(f"Statistics saved as '{stats_csv_path}'")
 
 
-#  5) Main + Argument Parsing
+# 5) Main + Argument Parsing
 if __name__ == "__main__":
     """
     Example usage:
       python training/training.py --model_type lstm --epochs 300 --lstm_neurons 128,64 --lstm_dropout 0.2
       python training/training.py --model_type gru --gru_units 128,64 --gru_dropout_rate 0.1
       python training/training.py --model_type cnn_lstm --filters1 32 --filters2 8 --cnn_lstm_neurons 64,32
-
     If an argument is not provided, it uses the function's hard-coded default.
     """
     parser = argparse.ArgumentParser()
-
+    
     # Model choice
     parser.add_argument("--model_type", type=str, default=None,
                         choices=["lstm", "gru", "cnn_lstm"],
                         help="Choose which model to train. Default = lstm")
-
+    
     # Common overrides
     parser.add_argument("--epochs", type=int, default=None,
                         help="Number of epochs (override). If None, use defaults.")
     parser.add_argument("--batch_size", type=int, default=None,
                         help="Batch size (override). If None, use defaults.")
-
+    
     # LSTM-specific CLI arguments
     parser.add_argument("--lstm_neurons", type=str, default=None,
                         help="Comma-separated LSTM neurons, e.g. '64,32'.")
     parser.add_argument("--lstm_dropout", type=float, default=None,
                         help="Dropout rate for LSTM, e.g. 0.2.")
-
+    
     # GRU-specific CLI arguments
     parser.add_argument("--gru_units", type=str, default=None,
                         help="Comma-separated GRU units, e.g. '112,64'.")
     parser.add_argument("--gru_dropout_rate", type=float, default=None,
                         help="Dropout rate for GRU, e.g. 0.1.")
-
+    
     # CNN-LSTM-specific CLI arguments
     parser.add_argument("--filters1", type=int, default=None,
                         help="Number of filters in first CNN layer.")
@@ -415,10 +407,9 @@ if __name__ == "__main__":
                         help="Dropout rate for CNN-LSTM part, e.g. 0.3.")
     parser.add_argument("--dense_units", type=int, default=None,
                         help="Units in final dense layer for CNN-LSTM.")
-
+    
     args = parser.parse_args()
-
-    # Decide which train function to call based on model_type
+    
     if args.model_type == "lstm":
         train_lstm(
             epochs=args.epochs,

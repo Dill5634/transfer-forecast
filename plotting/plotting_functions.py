@@ -1,8 +1,6 @@
-# plotting_functions.py
 import matplotlib.pyplot as plt
 import numpy as np
 import os
-import inspect
 import pandas as pd
 
 def ensure_dir(directory):
@@ -10,13 +8,14 @@ def ensure_dir(directory):
     if not os.path.exists(directory):
         os.makedirs(directory)
 
-def get_model_prefix():
+def get_model_prefix(subdir):
     """
-    Determines the model prefix dynamically based on the MODEL_NAME environment variable.
-    If the variable is not set, defaults to 'general_plots'.
+    Determines the model prefix dynamically based on the MODEL_NAME environment variable,
+    then appends the given subdir.
+    If MODEL_NAME is not set, defaults to 'general_plots'.
     """
     model_name = os.getenv("MODEL_NAME", "general_plots")
-    return os.path.join("plotting", "model_plots", model_name, "training")
+    return os.path.join("plotting", "model_plots", model_name, subdir)
 
 def plotting():
     """
@@ -82,13 +81,14 @@ def plot_train_val_test_predictions(
     val_end,
     test_start,
     test_end,
-    variable_names
+    variable_names,
+    subdir  
 ):
     """
     Plots the entire series for each variable, saving plots dynamically
-    under the corresponding model folder.
+    under the corresponding model folder and chosen subdir.
     """
-    model_prefix = get_model_prefix()
+    model_prefix = get_model_prefix(subdir)
     ensure_dir(model_prefix)
 
     for i, var in enumerate(variable_names):
@@ -96,10 +96,16 @@ def plot_train_val_test_predictions(
         try:
             plt.figure(figsize=(12, 6))
             plt.plot(full_data[:, i], label=f'Full Data ({var})', color='gray', alpha=0.4)
-            plt.plot(range(train_start, train_end), full_data[train_start:train_end, i], label='Training', color='blue')
-            plt.plot(range(val_start, val_end), full_data[val_start:val_end, i], label='Validation', color='green')
-            plt.plot(range(test_start, test_end), full_data[test_start:test_end, i], label='Test', color='orange')
-            plt.plot(range(test_start, test_start + len(predictions_inverse)), predictions_inverse[:, i], label='Predicted (Test)', color='red', linestyle='dashed')
+            plt.plot(range(train_start, train_end), full_data[train_start:train_end, i],
+                     label='Training', color='blue')
+            plt.plot(range(val_start, val_end), full_data[val_start:val_end, i],
+                     label='Validation', color='green')
+            plt.plot(range(test_start, test_end), full_data[test_start:test_end, i],
+                     label='Test', color='orange')
+            # Overlay predictions on the test segment
+            plt.plot(range(test_start, test_start + len(predictions_inverse)), 
+                     predictions_inverse[:, i], label='Predicted (Test)', 
+                     color='red', linestyle='dashed')
             plt.title(f"{var} - Train/Val/Test & Predictions")
             plt.xlabel("Time Steps")
             plt.ylabel(var)
@@ -111,11 +117,13 @@ def plot_train_val_test_predictions(
         except Exception as e:
             print(f"Error plotting {var}: {e}")
 
-def plot_test_vs_prediction(y_true_inv, y_pred_inv, variable_names):
-    """
-    Multi-subplot for actual vs predicted in the test set, saving the plot dynamically.
-    """
-    model_prefix = get_model_prefix()
+def plot_test_vs_prediction(
+    y_true_inv,
+    y_pred_inv,
+    variable_names,
+    subdir  
+):
+    model_prefix = get_model_prefix(subdir)
     ensure_dir(model_prefix)
 
     plot_path = os.path.join(model_prefix, "test_vs_prediction.png")
@@ -125,7 +133,7 @@ def plot_test_vs_prediction(y_true_inv, y_pred_inv, variable_names):
         for i, var in enumerate(variable_names):
             plt.subplot(num_vars, 1, i + 1)
             plt.plot(y_true_inv[:, i], label=f"Actual {var}", color='orange')
-            plt.plot(y_pred_inv[:, i], label=f"Pred {var}", color='red', linestyle='--')
+            plt.plot(y_pred_inv[:, i], label=f"Predicted {var}", color='red', linestyle='--')
             plt.title(f"{var} - Test vs. Predicted")
             plt.legend()
         plt.tight_layout()
