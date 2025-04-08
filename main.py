@@ -3,17 +3,18 @@ import argparse
 from stationarity.stationarity_tests import run_stationarity_tests
 from plotting.plotting_functions import plotting
 from training.training import train_lstm, train_cnn_lstm, train_gru
+from transfer_learning.transfer_learning import transfer_learning  # <-- NEW
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Run stationarity tests, generate plots, and train forecasting models."
+        description="Run stationarity tests, generate plots, train models, and perform transfer learning."
     )
     parser.add_argument(
         "--model",
         type=str,
         choices=["lstm", "cnn_lstm", "gru", "all"],
         default="all",
-        help="Specify which model to train: 'lstm', 'cnn_lstm', 'gru', or 'all' (default)."
+        help="Specify which model to use: 'lstm', 'cnn_lstm', 'gru', or 'all' (default)."
     )
     args = parser.parse_args()
 
@@ -46,6 +47,16 @@ def main():
     else:
         print("No valid model option selected. Exiting.")
         sys.exit(1)
+
+    # Step 4: Run Transfer Learning
+    print("\n=== Starting Transfer Learning ===")
+    if args.model == "all":
+        for model_type in ["lstm", "cnn_lstm", "gru"]:
+            print(f"\n--- Running transfer learning for {model_type.upper()} ---")
+            transfer_learning(model_type=model_type)
+    else:
+        print(f"\n--- Running transfer learning for {args.model.upper()} ---")
+        transfer_learning(model_type=args.model)
 
 if __name__ == "__main__":
     main()
