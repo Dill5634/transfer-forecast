@@ -249,7 +249,6 @@ def training(
     n_features = len(variables)
 
     if model_type.lower() == "lstm":
-        # Build LSTM model
         model = lstm(
             seq_length=seq_length,
             n_features=n_features,
@@ -257,7 +256,6 @@ def training(
             dropout=lstm_dropout       
         )
     elif model_type.lower() == "gru":
-        # Build GRU model
         model = gru(
             input_size=seq_length,
             n_features=n_features,
@@ -328,7 +326,7 @@ def training(
     val_start   = train_end
     test_start  = val_end
 
-    # Use the updated plotting functions with an explicit subdir parameter.
+    
     plot_train_val_test_predictions(
         full_data=full_data_inv,
         predictions_inverse=y_pred_test_inv,

@@ -60,3 +60,9 @@ def main():
 
 if __name__ == "__main__":
     main()
+    """
+    Example Usage:
+    python main.py --model all
+    or
+    python main.py --model gru
+    """

@@ -74,7 +74,7 @@ def transfer_learning(model_type):
                   loss='mean_absolute_error',
                   metrics=['mae'])
 
-    # 6) Split data into training, validation, and test sets (70/15/15)
+    # 6) Split data into training, validation, and test sets
     N = len(X)
     train_end = int(N * 0.7)
     val_end = int(N * 0.85)
@@ -149,7 +149,7 @@ def transfer_learning(model_type):
     )
     print(f"Full dataset plots saved under {os.path.join('plotting/model_plots', os.getenv('MODEL_NAME'), 'transfer')}")
 
-    # 13) Save error statistics to a CSV file in transfer_learning
+    # 13) Save statistics to a CSV file in transfer_learning
     transfer_stats_dir = os.path.join("transfer_learning", model_type.upper())
     os.makedirs(transfer_stats_dir, exist_ok=True)
     stats_csv_path = os.path.join(transfer_stats_dir, model_type.upper() +  "_transfer_stats.csv")
