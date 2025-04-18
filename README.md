@@ -9,8 +9,8 @@ This project focuses on forecasting macroeconomic indicators using deep learning
 ## 📁 Project Structure
 
 .  
-├── developed/                 # UK quarterly macroeconomic datasets (training)  
-├── developing/                # US yearly macroeconomic datasets (transfer learning)  
+├── developed/                 # Quarterly macroeconomic developed country datasets (training)  
+├── developing/                # Yearly macroeconomic developing country datasets (transfer learning)  
 ├── helpers/                   # Helper utilities (e.g., metrics, parsing)  
 ├── models/                    # Model definitions (LSTM, GRU, CNN-LSTM)  
 ├── plotting/                  # General and model-specific plotting functions  
@@ -19,7 +19,7 @@ This project focuses on forecasting macroeconomic indicators using deep learning
 ├── training/                  # Model training pipeline  
 ├── transfer_learning/         # Transfer learning logic & saved stats  
 ├── tuner_results/             # Hyperparameter tuning output  
-├── tuning/                    # Keras Tuner tuning scripts  
+├── tuning/                    # Tuner scripts  
 ├── main.py                    # Master script for end-to-end pipeline  
 ├── requirements.txt           # Project dependencies  
 └── README.md                  # You’re here!  
@@ -35,10 +35,10 @@ This project focuses on forecasting macroeconomic indicators using deep learning
 3. **Model Training**  
    Trains LSTM, GRU, and CNN-LSTM models using structured datasets.  
 4. **Hyperparameter Tuning**  
-   Uses Keras Tuner (Bayesian Optimization) to tune each model.  
+   Uses Keras Tuner (Bayesian Optimisation) to tune each model.  
 5. **Transfer Learning**  
    Adapts models trained on UK data to US data using fine-tuning.  
-6. **Evaluation & Visualization**  
+6. **Evaluation & Visualisation**  
    Generates plots and metrics (MAE, RMSE, MAPE, accuracy).  
 
 ---
@@ -85,7 +85,7 @@ python transfer_learning/transfer_learning.py --model_type all
 
 ## 📊 Datasets
 
-- Located in `developed/` (quarterly UK data) and `developing/` (yearly US data).  
+- Located in `developed/` (quarterly developed data) and `developing/` (yearly developing data).  
 - Variables used: `GDP`, `CPI`, `UNRATE`, `IR`, `BOP`  
 - Files must contain a `TIME` column in `YYYY Qn` or `YYYY` format, depending on frequency.  
 
@@ -101,7 +101,7 @@ Each trained model evaluates the following metrics:
 - **MAPE** – Mean Absolute Percentage Error  
 - **Accuracy** – Estimated using `100 - MAPE`  
 
-All metrics are saved to `.csv` files and visualized automatically.
+All metrics are saved to `.csv` files and visualised automatically.
 
 ---
 
@@ -109,7 +109,7 @@ All metrics are saved to `.csv` files and visualized automatically.
 
 - **LSTM**: Sequential memory network for time series.  
 - **GRU**: Gated Recurrent Unit architecture.  
-- **CNN-LSTM**: 1D convolution layers followed by LSTM for mixed feature extraction.  
+- **CNN-LSTM**: Convolution layers followed by LSTM for mixed feature extraction.  
 
 Each model can be trained, tuned, and evaluated independently.
 
